@@ -37,6 +37,29 @@ export default function MinesweeperGame() {
   }, []);
 
   useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        const response = await fetch('/leader');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: Score[] = await response.json();
+        setAllScores(data);
+      } catch (error) {
+        console.error('Failed to fetch leaderboard:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Could not fetch leaderboard data.',
+        });
+        setAllScores([]);
+      }
+    };
+
+    fetchScores();
+  }, [difficulty, toast]);
+
+  useEffect(() => {
     // Filter scores for the current difficulty
     setLeaderboard(allScores.filter(score => score.difficulty === difficulty));
   }, [allScores, difficulty]);
