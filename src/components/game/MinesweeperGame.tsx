@@ -9,6 +9,7 @@ import { GameControls } from "./GameControls";
 import { Leaderboard } from "./Leaderboard";
 import { WinDialog } from "./WinDialog";
 import { useToast } from "@/hooks/use-toast";
+import { getLeaderboard, addLeaderboardScore } from "@/ai/flows/leaderboardFlow";
 
 export default function MinesweeperGame() {
   const [difficulty, setDifficulty] = useState<Difficulty>('Beginner');
@@ -17,9 +18,24 @@ export default function MinesweeperGame() {
   const [time, setTime] = useState(0);
   const [firstClick, setFirstClick] = useState(true);
   const [leaderboard, setLeaderboard] = useState<Score[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const getGameSettings = () => DIFFICULTIES[difficulty];
+
+  const fetchLeaderboard = useCallback(async (diff: Difficulty) => {
+    try {
+      const scores = await getLeaderboard({ difficulty: diff });
+      setLeaderboard(scores);
+    } catch (error) {
+      console.error("Failed to fetch leaderboard", error);
+      toast({
+        title: "Error",
+        description: "Could not load leaderboard scores.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   const startNewGame = useCallback((newDifficulty: Difficulty) => {
     setDifficulty(newDifficulty);
@@ -27,11 +43,13 @@ export default function MinesweeperGame() {
     setGameStatus('ready');
     setTime(0);
     setFirstClick(true);
-  }, []);
+    fetchLeaderboard(newDifficulty);
+  }, [fetchLeaderboard]);
 
   useEffect(() => {
     startNewGame(difficulty);
-  }, [difficulty, startNewGame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -105,25 +123,37 @@ export default function MinesweeperGame() {
     setBoard(newBoard);
   };
   
-  const handleSaveScore = (nickname: string) => {
-    const isDuplicate = leaderboard.some(score => score.nickname.toLowerCase() === nickname.toLowerCase());
-    if (isDuplicate) {
+  const handleSaveScore = async (nickname: string) => {
+    setIsSubmitting(true);
+    const newScore: Score = { nickname, time, difficulty };
+    
+    try {
+      const result = await addLeaderboardScore(newScore);
+
+      if (result.error) {
+        toast({
+          title: "Error saving score",
+          description: result.error,
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       toast({
-        title: "Nickname already exists",
-        description: "Please choose a different nickname.",
+          title: "Score Saved!",
+          description: "Your score has been added to the leaderboard.",
+      });
+      startNewGame(difficulty);
+
+    } catch (e) {
+      toast({
+        title: "An unexpected error occurred",
+        description: "Please try again.",
         variant: "destructive",
       });
-      return;
+      setIsSubmitting(false);
     }
-
-    const newScore: Score = { nickname, time, difficulty };
-    setLeaderboard(prev => [...prev, newScore]);
-    setGameStatus('ready');
-    startNewGame(difficulty);
-    toast({
-        title: "Score Saved!",
-        description: "Your score has been added to the leaderboard.",
-      });
   };
 
   const flagsUsed = board.flat().filter(c => c.isFlagged).length;
@@ -152,13 +182,13 @@ export default function MinesweeperGame() {
       <WinDialog
         open={gameStatus === 'won'}
         onOpenChange={(isOpen) => {
-          if (!isOpen) {
-            setGameStatus('ready');
+          if (!isOpen && gameStatus === 'won') {
             startNewGame(difficulty);
           }
         }}
         time={time}
         onSubmit={handleSaveScore}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

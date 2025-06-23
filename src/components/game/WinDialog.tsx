@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PartyPopper } from "lucide-react";
+import { Loader2, PartyPopper } from "lucide-react";
 
 const formSchema = z.object({
   nickname: z.string().min(2, "Nickname must be at least 2 characters.").max(15, "Nickname must be 15 characters or less."),
@@ -25,9 +26,10 @@ interface WinDialogProps {
   onOpenChange: (open: boolean) => void;
   time: number;
   onSubmit: (nickname: string) => void;
+  isSubmitting?: boolean;
 }
 
-export function WinDialog({ open, onOpenChange, time, onSubmit }: WinDialogProps) {
+export function WinDialog({ open, onOpenChange, time, onSubmit, isSubmitting = false }: WinDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -37,8 +39,13 @@ export function WinDialog({ open, onOpenChange, time, onSubmit }: WinDialogProps
 
   function handleSubmit(values: z.infer<typeof formSchema>) {
     onSubmit(values.nickname);
-    form.reset();
   }
+
+  React.useEffect(() => {
+    if (open) {
+      form.reset();
+    }
+  }, [open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,14 +68,17 @@ export function WinDialog({ open, onOpenChange, time, onSubmit }: WinDialogProps
                 <FormItem>
                   <FormLabel>Nickname</FormLabel>
                   <FormControl>
-                    <Input placeholder="Minesweeper Pro" {...field} />
+                    <Input placeholder="Minesweeper Pro" {...field} disabled={isSubmitting} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <DialogFooter>
-              <Button type="submit">Save Score</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? "Saving..." : "Save Score"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
