@@ -1,6 +1,6 @@
 # Minesweeper API Documentation
 
-This document outlines the standardized API for interacting with the game's backend services, implemented using Genkit flows.
+This document outlines the standardized API for interacting with the game's backend services, implemented using Genkit flows. The backend uses a SQLite database for persistent storage.
 
 ## Base URL
 
@@ -85,4 +85,18 @@ async function saveScore(score: Score) {
     console.log("Score saved:", result.score);
   }
 }
+```
+
+## Database Schema
+
+The leaderboard data is stored in a SQLite database (`src/data/leaderboard.db`). The table is defined by the following DDL:
+
+```sql
+CREATE TABLE IF NOT EXISTS scores (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nickname TEXT NOT NULL,
+  time INTEGER NOT NULL,
+  difficulty TEXT NOT NULL,
+  UNIQUE(nickname, difficulty)
+);
 ```
