@@ -136,7 +136,6 @@ export default function MinesweeperGame() {
           description: result.error,
           variant: "destructive",
         });
-        setIsSubmitting(false);
         return;
       }
 
@@ -152,6 +151,7 @@ export default function MinesweeperGame() {
         description: "Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
