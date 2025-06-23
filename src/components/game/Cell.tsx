@@ -54,9 +54,9 @@ export function Cell({ cell, onClick, onContextMenu, isLost }: CellProps) {
         "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-sm transition-colors duration-150 font-mono",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:z-10",
         {
-          "bg-muted border border-gray-300": cell.isRevealed && !cell.isMine,
-          "bg-secondary hover:bg-muted shadow-sm": !cell.isRevealed,
-          "bg-red-200 border-red-400": isLost && cell.isMine,
+          "bg-muted border border-border/50": cell.isRevealed && !cell.isMine,
+          "bg-card hover:bg-muted/50 border": !cell.isRevealed,
+          "bg-destructive/20 border-destructive": isLost && cell.isMine,
           "cursor-default": cell.isRevealed,
         }
       )}
