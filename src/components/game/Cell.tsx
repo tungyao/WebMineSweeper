@@ -22,7 +22,7 @@ const numberColors = [
   "text-maroon-800",
   "text-teal-600",
   "text-black",
-  "text-gray-500",
+  "text-gray-200",
 ];
 
 export function Cell({ cell, onClick, onContextMenu, isLost }: CellProps) {
@@ -54,8 +54,8 @@ export function Cell({ cell, onClick, onContextMenu, isLost }: CellProps) {
         "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center rounded-sm transition-colors duration-150 font-mono",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:z-10",
         {
-          "bg-muted border border-border/50": cell.isRevealed && !cell.isMine,
-          "bg-card hover:bg-muted/50 border": !cell.isRevealed,
+          "bg-secondary border border-border/50": cell.isRevealed && !cell.isMine,
+          "bg-card hover:bg-secondary/50 border": !cell.isRevealed,
           "bg-destructive/20 border-destructive": isLost && cell.isMine,
           "cursor-default": cell.isRevealed,
         }
