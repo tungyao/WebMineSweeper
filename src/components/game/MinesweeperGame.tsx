@@ -140,15 +140,43 @@ export default function MinesweeperGame() {
     setIsSubmitting(true);
     const newScore: Score = { nickname, time, difficulty };
     
-    setAllScores(prevScores => [...prevScores, newScore]);
+    // 正确定义并调用异步函数
+    (async () => {
+      try {
+        const response = await fetch('/leader', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newScore),
+        });
+        
+        // 检查响应状态
+        if (!response.ok) {
+          throw new Error('Failed to save score');
+        }
+        
+        // 成功后更新状态
+        setAllScores(prevScores => [...prevScores, newScore]);
+  
+        toast({
+          title: "Score Saved!",
+          description: "Your score has been added to the leaderboard for this session.",
+        });
+      } catch (error) {
+        console.error('Error saving score:', error);
+        // 错误处理
+        toast({
+          title: "Save Failed",
+          description: "There was an error saving your score.",
 
-    toast({
-        title: "Score Saved!",
-        description: "Your score has been added to the leaderboard for this session.",
-    });
-
-    startNewGame(difficulty);
-    setIsSubmitting(false);
+        });
+      } finally {
+        // 无论成功或失败都执行
+        startNewGame(difficulty);
+        setIsSubmitting(false);
+      }
+    })(); // 立即调用异步函数
   };
 
   const flagsUsed = board.flat().filter(c => c.isFlagged).length;
